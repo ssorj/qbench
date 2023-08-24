@@ -47,7 +47,13 @@ static int64_t time_micros() {
     return (ts.tv_sec * 1000000) + (ts.tv_nsec / 1000);
 }
 
-// XXX sleep_micros
+static void sleep_micros(int64_t micros) {
+    assert(micros > 0);
+    assert(micros * 1000 < 1000000000);
+
+    const struct timespec sleep_time = {.tv_nsec = micros * 1000};
+    nanosleep(&sleep_time, NULL);
+}
 
 static bool delivery_is_complete(pn_delivery_t* delivery) {
     assert(delivery);

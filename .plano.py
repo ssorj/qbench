@@ -5,8 +5,8 @@ def run_():
     build()
 
     with start("qbench-server localhost 5672 10"):
-        sleep(1)
-        run("python python/main.py")
+        with working_env(BENCHDOG_DURATION=5, BENCHDOG_ITERATIONS=1):
+            run("python python/main.py")
 
 @command
 def build():

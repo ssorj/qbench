@@ -30,7 +30,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <inttypes.h>
 #include <unistd.h>
 
@@ -369,14 +368,13 @@ int main(size_t argc, char** argv) {
 
     int64_t start_time = time_micros();
     int64_t end_time = start_time + (duration * 1000000);
-    const struct timespec sleep_time = {.tv_nsec = 1000000};
 
     while (time_micros() < end_time) {
         for (int i = 0; i < job_count; i++) {
             pn_connection_wake(connections[i]);
         }
 
-        nanosleep(&sleep_time, NULL);
+        sleep_micros(1000);
     }
 
     pn_proactor_interrupt(proactor);
