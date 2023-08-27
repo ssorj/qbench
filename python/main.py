@@ -177,7 +177,7 @@ def report(config, data):
     print("## Results")
     print()
 
-    columns = "{:>8}  {:>6}  {:>18}  {:>12}  {:>12}  {:>12}"
+    columns = "{:>8}  {:>6}  {:>20}  {:>14}  {:>14}  {:>14}"
 
     print(columns.format("SCENARIO", "JOBS", "THROUGHPUT", "LATENCY AVG", "LATENCY P50", "LATENCY P99"))
 
@@ -197,8 +197,6 @@ def report(config, data):
     print("## Sender metrics (P50/P99)")
     print()
 
-    columns = "{:>8}  {:>6}  {:>18}  {:>12}  {:>12}  {:>12}"
-
     print(columns.format("SCENARIO", "JOBS", "OUTGOING BYTES", "S CREDIT", "S QUEUED", "S UNSETTLED"))
 
     for scenario, data in enumerate(results, 1):
@@ -216,8 +214,6 @@ def report(config, data):
     print()
     print("## Receiver metrics (P50/P99)")
     print()
-
-    columns = "{:>8}  {:>6}  {:>18}  {:>12}  {:>12}  {:>12}"
 
     print(columns.format("SCENARIO", "JOBS", "INCOMING BYTES", "R CREDIT", "R QUEUED", "R UNSETTLED"))
 
