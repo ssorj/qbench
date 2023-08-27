@@ -21,13 +21,6 @@ from plano import *
 
 import json as _json
 import pandas as _pandas
-import statistics as _statistics
-
-def load_config(default_port=8080):
-    return Namespace(host=ENV.get("BENCHDOG_HOST", "localhost"),
-                     port=ENV.get("BENCHDOG_PORT", default_port),
-                     duration=int(ENV.get("BENCHDOG_DURATION", 5)),
-                     iterations=int(ENV.get("BENCHDOG_ITERATIONS", 1)))
 
 def print_config(config):
     print()
@@ -36,8 +29,8 @@ def print_config(config):
 
     print(f"Host:        {config.host}")
     print(f"Port:        {config.port}")
+    print(f"Workers:     {config.workers}")
     print(f"Duration:    {config.duration} {plural('second', config.duration)}")
-    print(f"Iterations:  {config.iterations}")
 
 def print_data(data):
     print()
@@ -171,31 +164,14 @@ def process_qbench_logs():
     return data
 
 def run_scenario(config, jobs):
-    results = list()
-
-    for i in range(config.iterations):
-        sleep(min((1, config.duration)))
-        results.append(run_qbench(config, jobs))
-
-    return results
+    sleep(min((2, config.duration)))
+    return run_qbench(config, jobs)
 
 def report(config, data):
     print_config(config)
     # print_data(data)
 
-    results = list()
-
-    # Find the middlest result by average latency for each scenario
-
-    for scenario_data in data.values():
-        try:
-            latency_averages = [x["latency"]["average"] for x in scenario_data]
-        except KeyError:
-            continue
-
-        index = latency_averages.index(_statistics.median_low(latency_averages))
-
-        results.append(scenario_data[index])
+    results = data.values()
 
     print()
     print("## Results")
@@ -218,6 +194,8 @@ def report(config, data):
               ))
 
     print()
+    print("## Sender metrics (P50/P99)")
+    print()
 
     columns = "{:>8}  {:>6}  {:>18}  {:>12}  {:>12}  {:>12}"
 
@@ -235,6 +213,8 @@ def report(config, data):
                              "{:,.0f}/{:,.0f}".format(data["sender_unsettled"]["p50"], data["sender_unsettled"]["p99"]),
               ))
 
+    print()
+    print("## Receiver metrics (P50/P99)")
     print()
 
     columns = "{:>8}  {:>6}  {:>18}  {:>12}  {:>12}  {:>12}"
@@ -256,7 +236,7 @@ def report(config, data):
     print()
 
 def main():
-    config = load_config(default_port=5672)
+    config = Namespace(host=ARGS[1], port=ARGS[2], workers=int(ARGS[3]), duration=int(ARGS[4]))
 
     await_port(config.port, host=config.host)
 
