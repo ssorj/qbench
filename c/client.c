@@ -92,7 +92,6 @@ static int worker_receive_response(worker_t* worker, pn_delivery_t* delivery) {
     if (err) return err;
 
     pn_data_t* properties = pn_message_properties(worker->response_message);
-
     pn_data_rewind(properties);
     pn_data_next(properties);
     pn_data_get_map(properties);
@@ -129,10 +128,10 @@ static int worker_receive_response(worker_t* worker, pn_delivery_t* delivery) {
     int receiver_unsettled = pn_link_unsettled(receiver);
 
     fprintf(worker->log_file,
-            "%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%d,%d,%d,%d,%d,%d\n",
-            send_time, duration, incoming_bytes, outgoing_bytes,
-            sender_credit, sender_queued, sender_unsettled,
-            receiver_credit, receiver_queued, receiver_unsettled);
+            "%" PRId64 ",%" PRId64 ",%" PRId64 ",%d,%d,%d,%" PRId64 ",%d,%d,%d\n",
+            send_time, duration,
+            outgoing_bytes, sender_credit, sender_queued, sender_unsettled,
+            incoming_bytes, receiver_credit, receiver_queued, receiver_unsettled);
 
     pn_delivery_update(delivery, PN_ACCEPTED);
     pn_delivery_settle(delivery);
@@ -360,7 +359,7 @@ int main(size_t argc, char** argv) {
 
         pn_connection_set_context(connections[i], connection_context_alloc(i));
 
-        pn_proactor_addr(address, sizeof(address), "localhost", "5672");
+        pn_proactor_addr(address, sizeof(address), host, port);
         pn_proactor_connect2(proactor, connections[i], NULL, address);
     }
 
