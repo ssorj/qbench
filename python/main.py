@@ -39,7 +39,7 @@ def print_data(data):
 
     print(_json.dumps(data, indent=2))
 
-def run_qbench(config, jobs):
+def run_qbench_client(config, jobs):
     remove(list_dir(".", "qbench.log*"), quiet=True)
 
     args = [
@@ -166,10 +166,11 @@ def process_qbench_logs():
 
 def run_scenario(config, jobs):
     sleep(min((2, config.duration)))
-    return run_qbench(config, jobs)
+    return run_qbench_client(config, jobs)
 
 def report(config, data):
     print_config(config)
+    # XXX Print location of data
     # print_data(data)
 
     results = data.values()
@@ -232,8 +233,8 @@ def report(config, data):
 
     print()
 
-def main():
-    config = Namespace(host=ARGS[1], port=ARGS[2], workers=int(ARGS[3]), duration=int(ARGS[4]))
+def run_client():
+    config = Namespace(host=ARGS[2], port=ARGS[3], workers=int(ARGS[4]), duration=int(ARGS[5]))
 
     await_port(config.port, host=config.host)
 
@@ -244,6 +245,30 @@ def main():
     }
 
     report(config, data)
+
+def run_server():
+    config = Namespace(host=ARGS[2], port=ARGS[3], workers=int(ARGS[4]))
+
+    args = [
+        # "taskset", "--cpu-list", "0-7",
+        # "pidstat", "2", "--human", "-l", "-t", "-e",
+        "./qbench-server",
+        str(config.host),
+        str(config.port),
+        str(config.workers),
+    ]
+
+    run(args)
+
+def main():
+    role = ARGS[1]
+
+    if role == "client":
+        run_client()
+    elif role == "server":
+        run_server()
+    else:
+        fail(f"Unknown role: {role}")
 
 if __name__ == "__main__":
     try:
