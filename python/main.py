@@ -27,10 +27,10 @@ def print_config(config):
     print("## Configuration")
     print()
 
-    print(f"Host:        {config.host}")
-    print(f"Port:        {config.port}")
-    print(f"Workers:     {config.workers}")
-    print(f"Duration:    {config.duration} {plural('second', config.duration)}")
+    print(f"Host:            {config.host}")
+    print(f"Port:            {config.port}")
+    print(f"Workers:         {config.workers}")
+    print(f"Duration:        {config.duration} {plural('second', config.duration)}")
 
 def print_data(data):
     print()
@@ -44,12 +44,13 @@ def run_qbench(config, jobs):
 
     args = [
         # "taskset", "--cpu-list", "0-7",
+        "pidstat", "2", "--human", "-l", "-t", "-e",
         "./qbench-client",
         str(config.host),
         str(config.port),
-        str(jobs),
-        str(jobs),
+        str(config.workers),
         str(config.duration),
+        str(jobs),
     ]
 
     run(args)

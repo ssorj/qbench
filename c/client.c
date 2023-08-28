@@ -188,7 +188,9 @@ static int worker_handle_event(worker_t* worker, pn_event_t* event, bool* runnin
 
         if (send_delta < 0) fail("Send delta is negative");
 
-        for (int i = 0; i < send_delta; i++) {
+        int credit = pn_link_credit(context->sender);
+
+        for (int i = 0; i < send_delta && i < credit; i++) {
             int err = worker_send_request(worker, context->sender);
             if (err) return err;
         }
@@ -200,9 +202,7 @@ static int worker_handle_event(worker_t* worker, pn_event_t* event, bool* runnin
 
         if (pn_link_is_receiver(sender)) fail("Unexpected receiver");
 
-        if (pn_link_queued(sender) > SEND_BATCH_SIZE) {
-            pn_connection_write_flush(pn_event_connection(event));
-        }
+        pn_connection_write_flush(pn_event_connection(event));
 
         break;
     }
@@ -329,15 +329,15 @@ static void signal_handler(int signum) {
 
 int main(size_t argc, char** argv) {
     if (argc != 6) {
-        info("Usage: qbench-client HOST PORT WORKERS JOBS DURATION");
+        info("Usage: qbench-client HOST PORT WORKERS DURATION JOBS");
         return 1;
     }
 
     char* host = argv[1];
     char* port = argv[2];
     int worker_count = atoi(argv[3]);
-    int job_count = atoi(argv[4]);
-    int duration = atoi(argv[5]);
+    int duration = atoi(argv[4]);
+    int job_count = atoi(argv[5]);
 
     proactor = pn_proactor();
     worker_t workers[worker_count];

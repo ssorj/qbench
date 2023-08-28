@@ -1,12 +1,12 @@
 from plano import *
 
 @command
-def run_(host=None, port=None, workers=10, duration=5):
+def run_(host=None, port=None, client_workers=10, server_workers=10, duration=10):
     build()
 
     if host is None and port is None:
-        with start(f"qbench-server localhost 55155 {workers}"):
-            run(f"python python/main.py localhost 55155 {workers} {duration}")
+        with start(f"qbench-server localhost 55155 {server_workers}"):
+            run(f"python python/main.py localhost 55155 {client_workers} {duration}")
     else:
         run(f"python python/main.py {host} {port} {workers} {duration}")
 
