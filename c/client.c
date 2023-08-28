@@ -197,15 +197,15 @@ static int worker_handle_event(worker_t* worker, pn_event_t* event, bool* runnin
 
         break;
     }
-    case PN_LINK_FLOW: {
-        pn_link_t* sender = pn_event_link(event);
+    // case PN_LINK_FLOW: {
+    //     pn_link_t* sender = pn_event_link(event);
 
-        if (pn_link_is_receiver(sender)) fail("Unexpected receiver");
+    //     if (pn_link_is_receiver(sender)) fail("Unexpected receiver");
 
-        pn_connection_write_flush(pn_event_connection(event));
+    //     pn_connection_write_flush(pn_event_connection(event));
 
-        break;
-    }
+    //     break;
+    // }
     case PN_DELIVERY: {
         pn_link_t* link = pn_event_link(event);
 
