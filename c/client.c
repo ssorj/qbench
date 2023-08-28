@@ -116,8 +116,8 @@ static int worker_receive_response(worker_t* worker, pn_delivery_t* delivery) {
     pn_connection_t* connection = pn_session_connection(session);
     connection_context_t* context = pn_connection_get_context(connection);
 
-    size_t incoming_bytes = pn_session_incoming_bytes(session);
     size_t outgoing_bytes = pn_session_outgoing_bytes(session);
+    size_t incoming_bytes = pn_session_incoming_bytes(session);
 
     int sender_credit = pn_link_credit(context->sender);
     int sender_queued = pn_link_queued(context->sender);
