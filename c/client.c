@@ -353,7 +353,7 @@ int main(size_t argc, char** argv) {
     info("Client started");
 
     int64_t start_time = time_micros();
-    int64_t end_time = start_time + (duration * 1000000);
+    int64_t end_time = start_time + (duration * 1000 * 1000);
 
     while (time_micros() < end_time) {
         for (int i = 0; i < job_count; i++) {

@@ -25,7 +25,6 @@
 #include <time.h>
 
 static const int CREDIT_WINDOW = 100;
-static const int SEND_BATCH_SIZE = 10;
 static const int BODY_SIZE = 100;
 
 static void fail(char* message) {
