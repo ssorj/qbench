@@ -193,6 +193,20 @@ static int worker_handle_event(worker_t* worker, pn_event_t* event, bool* runnin
 
         break;
     }
+    // case PN_LINK_FLOW: {
+    //     pn_link_t* sender = pn_event_link(event);
+
+    //     if (pn_link_is_receiver(sender)) fail("Expected a sender");
+
+    //     int credit = pn_link_credit(sender);
+
+    //     for (int i = 0; i < credit; i++) {
+    //         int err = worker_send_request(worker, sender);
+    //         if (err) return err;
+    //     }
+
+    //     break;
+    // }
     case PN_DELIVERY: {
         pn_link_t* link = pn_event_link(event);
 
@@ -352,15 +366,19 @@ int main(size_t argc, char** argv) {
 
     info("Client started");
 
-    int64_t start_time = time_micros();
-    int64_t end_time = start_time + (duration * 1000 * 1000);
+    if (true) {
+        int64_t start_time = time_micros();
+        int64_t end_time = start_time + (duration * 1000 * 1000);
 
-    while (time_micros() < end_time) {
-        for (int i = 0; i < job_count; i++) {
-            pn_connection_wake(connections[i]);
+        while (time_micros() < end_time) {
+            for (int i = 0; i < job_count; i++) {
+                pn_connection_wake(connections[i]);
+            }
+
+            sleep_micros(1000);
         }
-
-        sleep_micros(1000);
+    } else {
+        sleep(duration);
     }
 
     pn_proactor_interrupt(proactor);
