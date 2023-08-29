@@ -110,8 +110,6 @@ static int worker_receive_response(worker_t* worker, pn_delivery_t* delivery) {
     int64_t receive_time = time_micros();
     int64_t duration = receive_time - send_time;
 
-    // fprintf(worker->log_file, "%" PRId64 ",%" PRId64 "\n", send_time, duration);
-
     pn_session_t* session = pn_link_session(receiver);
     pn_connection_t* connection = pn_session_connection(session);
     connection_context_t* context = pn_connection_get_context(connection);
@@ -176,15 +174,13 @@ static int worker_handle_event(worker_t* worker, pn_event_t* event, bool* runnin
 
         if (!context->sender) break;
 
-        int64_t current_time = time_micros();
         int64_t start_time = context->start_time;
+        int64_t current_time = time_micros();
         int64_t duration = current_time - start_time; // In micros
 
         int64_t desired_send_count = duration / 100;
         int64_t actual_send_count = context->send_count;
         int64_t send_delta = desired_send_count - actual_send_count;
-
-        // printf("w=%d d=%d dsc=%d asc=%d sd=%d\n", worker->id, duration, desired_send_count, actual_send_count, send_delta);
 
         if (send_delta < 0) fail("Send delta is negative");
 
@@ -197,15 +193,6 @@ static int worker_handle_event(worker_t* worker, pn_event_t* event, bool* runnin
 
         break;
     }
-    // case PN_LINK_FLOW: {
-    //     pn_link_t* sender = pn_event_link(event);
-
-    //     if (pn_link_is_receiver(sender)) fail("Unexpected receiver");
-
-    //     pn_connection_write_flush(pn_event_connection(event));
-
-    //     break;
-    // }
     case PN_DELIVERY: {
         pn_link_t* link = pn_event_link(event);
 
