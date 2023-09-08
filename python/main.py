@@ -51,6 +51,8 @@ def run_qbench_client(config, jobs):
         str(config.workers),
         str(config.duration),
         str(jobs),
+        str(100), # Body size
+        str(10_000), # Target rate
     ]
 
     run(args)

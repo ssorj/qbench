@@ -43,6 +43,7 @@ typedef struct worker {
     pn_bytes_t body_bytes;
     FILE* log_file;
     int id;
+    float target_rate;
 } worker_t;
 
 typedef struct connection_context {
@@ -169,6 +170,8 @@ static int worker_handle_event(worker_t* worker, pn_event_t* event, bool* runnin
         break;
     }
     case PN_CONNECTION_WAKE: {
+        if (!worker->target_rate) fail("Wake without target rate");
+
         pn_connection_t* connection = pn_event_connection(event);
         connection_context_t* context = pn_connection_get_context(connection);
 
@@ -178,35 +181,47 @@ static int worker_handle_event(worker_t* worker, pn_event_t* event, bool* runnin
         int64_t current_time = time_micros();
         int64_t duration = current_time - start_time; // In micros
 
-        int64_t desired_send_count = duration / 100;
+        int64_t desired_send_count = duration * worker->target_rate;
         int64_t actual_send_count = context->send_count;
         int64_t send_delta = desired_send_count - actual_send_count;
 
         if (send_delta < 0) fail("Send delta is negative");
 
-        int credit = pn_link_credit(context->sender);
+        int limit = pn_link_credit(context->sender);
 
-        for (int i = 0; i < send_delta && i < credit; i++) {
+        if (send_delta < limit) {
+            limit = send_delta;
+        }
+
+        for (int i = 0; i < limit; i++) {
             int err = worker_send_request(worker, context->sender);
             if (err) return err;
         }
 
         break;
     }
-    // case PN_LINK_FLOW: {
-    //     pn_link_t* sender = pn_event_link(event);
+    case PN_LINK_FLOW: {
+        if (worker->target_rate) {
+            break;
+        }
 
-    //     if (pn_link_is_receiver(sender)) fail("Expected a sender");
+        pn_link_t* sender = pn_event_link(event);
 
-    //     int credit = pn_link_credit(sender);
+        if (pn_link_is_receiver(sender)) fail("Expected a sender");
 
-    //     for (int i = 0; i < credit; i++) {
-    //         int err = worker_send_request(worker, sender);
-    //         if (err) return err;
-    //     }
+        int limit = pn_link_credit(sender);
 
-    //     break;
-    // }
+        if (limit > SEND_BATCH_SIZE) {
+            limit = SEND_BATCH_SIZE;
+        }
+
+        for (int i = 0; i < limit; i++) {
+            int err = worker_send_request(worker, sender);
+            if (err) return err;
+        }
+
+        break;
+    }
     case PN_DELIVERY: {
         pn_link_t* link = pn_event_link(event);
 
@@ -259,10 +274,10 @@ static int worker_handle_event(worker_t* worker, pn_event_t* event, bool* runnin
     return 0;
 }
 
-static void worker_init(worker_t* worker, int id, pn_proactor_t* proactor) {
-    char* body_bytes = (char*) malloc(BODY_SIZE);
+static void worker_init(worker_t* worker, int id, pn_proactor_t* proactor, int body_size, float target_rate) {
+    char* body_bytes = (char*) malloc(body_size);
 
-    memset(body_bytes, 'x', BODY_SIZE);
+    memset(body_bytes, 'x', body_size);
 
     *worker = (worker_t) {
         .id = id,
@@ -270,7 +285,8 @@ static void worker_init(worker_t* worker, int id, pn_proactor_t* proactor) {
         .request_message = pn_message(),
         .response_message = pn_message(),
         .message_buffer = pn_rwbytes(64, malloc(64)),
-        .body_bytes = pn_bytes(BODY_SIZE, body_bytes),
+        .body_bytes = pn_bytes(body_size, body_bytes),
+        .target_rate = target_rate,
     };
 }
 
@@ -329,8 +345,8 @@ static void signal_handler(int signum) {
 }
 
 int main(size_t argc, char** argv) {
-    if (argc != 6) {
-        info("Usage: qbench-client HOST PORT WORKERS DURATION JOBS");
+    if (argc != 8) {
+        info("Usage: qbench-client HOST PORT WORKERS DURATION JOBS BODY-SIZE TARGET-RATE");
         return 1;
     }
 
@@ -339,6 +355,10 @@ int main(size_t argc, char** argv) {
     int worker_count = atoi(argv[3]);
     int duration = atoi(argv[4]);
     int job_count = atoi(argv[5]);
+    int body_size = atoi(argv[6]);
+
+    // Scale the target rate to requests per microsecond
+    float target_rate = (float) atoi(argv[7]) / (1000 * 1000);
 
     proactor = pn_proactor();
     worker_t workers[worker_count];
@@ -350,7 +370,7 @@ int main(size_t argc, char** argv) {
     signal(SIGTERM, signal_handler);
 
     for (int i = 0; i < worker_count; i++) {
-        worker_init(&workers[i], i, proactor);
+        worker_init(&workers[i], i, proactor, body_size, target_rate);
         pthread_create(&worker_threads[i], NULL, &worker_run, &workers[i]);
     }
 
@@ -366,7 +386,7 @@ int main(size_t argc, char** argv) {
 
     info("Client started");
 
-    if (true) {
+    if (target_rate) {
         int64_t start_time = time_micros();
         int64_t end_time = start_time + (duration * 1000 * 1000);
 
