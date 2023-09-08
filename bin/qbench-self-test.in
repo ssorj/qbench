@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -21,11 +21,13 @@
 import os
 import sys
 
-if os.path.islink(__file__):
-    repo_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    sys.path.insert(0, os.path.join(repo_dir, "src"))
+if "QBENCH_HOME" not in os.environ:
+    os.environ["QBENCH_HOME"] = "@default_home@"
 
-from plano import PlanoCommand
+sys.path.insert(0, os.path.join(os.environ["QBENCH_HOME"], "python"))
+
+from plano import PlanoTestCommand
+from qbench import tests
 
 if __name__ == "__main__":
-    PlanoCommand().main()
+    PlanoTestCommand(tests).main()
