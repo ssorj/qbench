@@ -19,20 +19,36 @@
 
 from plano import *
 
-from .main import *
+from main import *
+from . import commands
 
-@command
-def run_(host=None, port=None, client_workers=10, server_workers=10, duration=10):
-    runner = Runner(duration=duration)
+standard_options = [
+    "--duration", "1",
+    # "--warmup", "0",
+    # "--jobs", "1",
+    # "--cpu-limit", "0"
+]
 
-    results = {
-        "1": runner.run(1),
-        "10": runner.run(10),
-        "100": runner.run(100),
-    }
+# def perf_enabled():
+#     try:
+#         commands.check_perf()
+#     except:
+#         return False
 
-    pprint(results)
+#     return True
 
-    # print(read(join(output_dir, "summary.json")))
+def run_command(command):
+    with working_dir():
+        PlanoCommand(commands).main([command] + standard_options)
 
-    # runner.report()
+# def run_workload(workload):
+#     with working_dir():
+#         PlanoCommand(commands).main(["run", "--workload", workload, "--relay", "none"] + standard_options)
+
+@test
+def command_executable():
+    run("qbench --init-only run")
+
+@test
+def command_options():
+    PlanoCommand(commands).main(["--help"])

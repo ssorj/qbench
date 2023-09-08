@@ -339,26 +339,27 @@ static void* worker_run(void* data) {
 }
 
 static pn_proactor_t* proactor = NULL;
+static volatile sig_atomic_t stopping = false;
 
 static void signal_handler(int signum) {
     pn_proactor_interrupt(proactor);
+    stopping = true;
 }
 
 int main(size_t argc, char** argv) {
-    if (argc != 8) {
-        info("Usage: qbench-client HOST PORT WORKERS DURATION JOBS BODY-SIZE TARGET-RATE");
+    if (argc != 7) {
+        info("Usage: qbench-client HOST PORT WORKERS JOBS BODY-SIZE TARGET-RATE");
         return 1;
     }
 
     char* host = argv[1];
     char* port = argv[2];
     int worker_count = atoi(argv[3]);
-    int duration = atoi(argv[4]);
-    int job_count = atoi(argv[5]);
-    int body_size = atoi(argv[6]);
+    int job_count = atoi(argv[4]);
+    int body_size = atoi(argv[5]);
 
     // Scale the target rate to requests per microsecond
-    float target_rate = (float) atoi(argv[7]) / (1000 * 1000);
+    float target_rate = (float) atoi(argv[6]) / (1000 * 1000);
 
     proactor = pn_proactor();
     worker_t workers[worker_count];
@@ -387,10 +388,7 @@ int main(size_t argc, char** argv) {
     info("Client started");
 
     if (target_rate) {
-        int64_t start_time = time_micros();
-        int64_t end_time = start_time + (duration * 1000 * 1000);
-
-        while (time_micros() < end_time) {
+        while (!stopping) {
             for (int i = 0; i < job_count; i++) {
                 pn_connection_wake(connections[i]);
             }
@@ -398,10 +396,10 @@ int main(size_t argc, char** argv) {
             sleep_micros(1000);
         }
     } else {
-        sleep(duration);
+        while (!stopping) {
+            sleep(1);
+        }
     }
-
-    pn_proactor_interrupt(proactor);
 
     for (int i = 0; i < worker_count; i++) {
         pthread_join(worker_threads[i], NULL);
