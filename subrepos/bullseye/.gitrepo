@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:ssorj/bullseye.git
+	branch = main
+	commit = fe6eeeba12de9fae01a7286e3496f7c1ab2e9744
+	parent = 1f12359d899aaab761e69a6aeb458808cc2b9255
+	method = merge
+	cmdver = 0.4.6
