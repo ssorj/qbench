@@ -29,5 +29,7 @@ def build(*args, **kwargs):
 
     check_program("gcc", "I can't find gcc.  Run 'dnf install gcc'.")
 
+    make_dir("build/qbench/c")
+
     run("gcc c/client.c -o build/qbench/c/qbench-client -O2 -g -std=c99 -fno-omit-frame-pointer -lqpid-proton-core -lqpid-proton-proactor")
     run("gcc c/server.c -o build/qbench/c/qbench-server -O2 -g -std=c99 -fno-omit-frame-pointer -lqpid-proton-core -lqpid-proton-proactor")
