@@ -27,8 +27,8 @@ import threading as _threading
 import time as _time
 
 class Runner:
-    def __init__(self, **kwargs):
-        self.duration = kwargs["duration"]
+    def __init__(self, config):
+        self.config = config
         self.output_dir = make_temp_dir()
 
         self.client_proc = None
@@ -36,6 +36,8 @@ class Runner:
 
     def run(self, jobs):
         check_program("pidstat", "I can't find pidstat.  Run 'dnf install sysstat'.")
+
+        remove(list_dir(".", "qbench.log*"), quiet=True)
 
         try:
             self.start_server()
@@ -52,7 +54,7 @@ class Runner:
 
             with start(f"pidstat 2 --human -l -t -p {','.join(pids)}"):
                 with ProcessMonitor(pids[0]) as client_mon, ProcessMonitor(pids[1]) as server_mon:
-                    sleep(self.duration)
+                    sleep(self.config.duration)
                     # capture(pids[0], pids[1], self.duration, self.call_graph)
         finally:
             self.stop_client()
@@ -60,27 +62,23 @@ class Runner:
 
         results = self.process_output()
 
-        summary = {
-            "results": results,
-            "resources": {
-                "client": {
-                    "average_cpu": client_mon.get_cpu(),
-                    "max_rss": client_mon.get_rss(),
-                },
-                "server": {
-                    "average_cpu": server_mon.get_cpu(),
-                    "max_rss": server_mon.get_rss(),
-                },
-            },
+        results["client_resources"] = {
+            "average_cpu": client_mon.get_cpu(),
+            "max_rss": client_mon.get_rss(),
         }
 
-        return summary
+        results["server_resources"] = {
+            "average_cpu": server_mon.get_cpu(),
+            "max_rss": server_mon.get_rss(),
+        }
+
+        return results
 
     def start_client(self, jobs):
-        self.client_proc = start(f"$QBENCH_HOME/c/qbench-client localhost 55155 10 {jobs} 100 1000")
+        self.client_proc = start(f"$QBENCH_HOME/c/qbench-client localhost 55155 {self.config.client_workers} {jobs} 100 1000")
 
     def start_server(self):
-        self.server_proc = start("$QBENCH_HOME/c/qbench-server localhost 55155 10")
+        self.server_proc = start(f"$QBENCH_HOME/c/qbench-server localhost 55155 {self.config.server_workers}")
 
     def stop_client(self):
         if self.client_proc is not None:
