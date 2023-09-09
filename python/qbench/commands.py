@@ -30,7 +30,7 @@ common_parameters = [
     CommandParameter("duration", default=10, type=int, positional=False, metavar="SECONDS",
                      help="The execution time in seconds"),
     CommandParameter("rate", default=10_000, type=int, positional=False, metavar="REQUESTS",
-                     help="The target per-second rate for sending requests"),
+                     help="The target rate for sending requests (per second per job)"),
     CommandParameter("body_size", default=100, type=int, positional=False, metavar="BYTES",
                      help="The message body size in bytes"),
     CommandParameter("client_workers", default=4, type=int, positional=False, metavar="COUNT",
@@ -75,7 +75,7 @@ def report(config, scenarios):
     print()
 
     print(f"Duration:        {config.duration:,} {plural('second', config.duration)}")
-    print(f"Rate:            {config.rate:,} {plural('request', config.rate)} per second")
+    print(f"Target rate:     {config.rate:,} {plural('request', config.rate)} per second per job")
     print(f"Body size:       {config.body_size:,} {plural('byte', config.body_size)}")
     print(f"Client workers:  {config.client_workers}")
     print(f"Server workers:  {config.server_workers}")
