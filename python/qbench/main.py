@@ -75,7 +75,17 @@ class Runner:
         return results
 
     def start_client(self, jobs):
-        self.client_proc = start(f"$QBENCH_HOME/c/qbench-client localhost 55155 {self.config.client_workers} {jobs} 100 1000")
+        args = [
+            "$QBENCH_HOME/c/qbench-client",
+            "localhost",
+            "55155",
+            str(self.config.client_workers),
+            str(jobs),
+            str(self.config.body_size),
+            str(self.config.rate),
+        ]
+
+        self.client_proc = start(args)
 
     def start_server(self):
         self.server_proc = start(f"$QBENCH_HOME/c/qbench-server localhost 55155 {self.config.server_workers}")
