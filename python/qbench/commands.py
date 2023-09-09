@@ -30,7 +30,7 @@ common_parameters = [
     CommandParameter("duration", default=10, type=int, positional=False, metavar="SECONDS",
                      help="The execution time in seconds"),
     CommandParameter("rate", default=10_000, type=int, positional=False, metavar="REQUESTS",
-                     help="The target rate for sending requests per second"),
+                     help="The target per-second rate for sending requests"),
     CommandParameter("body_size", default=100, type=int, positional=False, metavar="BYTES",
                      help="The message body size in bytes"),
     CommandParameter("client_workers", default=4, type=int, positional=False, metavar="COUNT",
@@ -47,6 +47,8 @@ def run_(*args, **kwargs):
     summary = {
         "configuration": {
             "duration": config.duration,
+            "rate": config.rate,
+            "body_size": config.body_size,
             "client_workers": config.client_workers,
             "server_workers": config.server_workers,
         },
