@@ -23,23 +23,30 @@ from .main import *
 
 assert "QBENCH_HOME" in ENV
 
-common_parameters = [
-    CommandParameter("jobs", default=None, type=int, positional=False, metavar="COUNT",
+run_parameters = [
+    CommandParameter("jobs", default=None, type=int, metavar="COUNT",
                      help="The number of concurrent client connections sending requests and receiving responses "
                      "(the default is a set of 1, 10, and 100)"),
-    CommandParameter("duration", default=10, type=int, positional=False, metavar="SECONDS",
+    CommandParameter("duration", default=10, type=int, metavar="SECONDS",
                      help="The execution time in seconds"),
-    CommandParameter("rate", default=10_000, type=int, positional=False, metavar="REQUESTS",
+    CommandParameter("rate", default=10_000, type=int, metavar="REQUESTS",
                      help="The target rate for sending requests (per second per job)"),
-    CommandParameter("body_size", default=100, type=int, positional=False, metavar="BYTES",
+    CommandParameter("body_size", default=100, type=int, metavar="BYTES",
                      help="The message body size in bytes"),
-    CommandParameter("client_workers", default=4, type=int, positional=False, metavar="COUNT",
-                     help="The number of client worker threads"),
-    CommandParameter("server_workers", default=4, type=int, positional=False, metavar="COUNT",
+    CommandParameter("workers", default=4, type=int, metavar="COUNT",
+                     help="The number of client and server worker threads"),
+]
+
+server_parameters = [
+    CommandParameter("host", default="localhost",
+                     help="Listen for connections on HOST"),
+    CommandParameter("port", default="55672",
+                     help="Listen for connections on PORT"),
+    CommandParameter("workers", default=4, type=int, metavar="COUNT",
                      help="The number of server worker threads"),
 ]
 
-@command(parameters=common_parameters)
+@command(parameters=run_parameters)
 def run_(*args, **kwargs):
     config = Namespace(**kwargs)
     runner = Runner(config)
@@ -49,8 +56,7 @@ def run_(*args, **kwargs):
             "duration": config.duration,
             "rate": config.rate,
             "body_size": config.body_size,
-            "client_workers": config.client_workers,
-            "server_workers": config.server_workers,
+            "workers": config.workers,
         },
     }
 
@@ -69,16 +75,22 @@ def run_(*args, **kwargs):
 
     report(config, summary["scenarios"])
 
+@command(parameters=server_parameters)
+def server(*args, **kwargs):
+    config = Namespace(**kwargs)
+    runner = Runner(config)
+
+    runner.run_server()
+
 def report(config, scenarios):
     print()
     print("## Configuration")
     print()
 
-    print(f"Duration:        {config.duration:,} {plural('second', config.duration)}")
-    print(f"Target rate:     {config.rate:,} {plural('request', config.rate)} per second per job")
-    print(f"Body size:       {config.body_size:,} {plural('byte', config.body_size)}")
-    print(f"Client workers:  {config.client_workers}")
-    print(f"Server workers:  {config.server_workers}")
+    print(f"Duration:     {config.duration:,} {plural('second', config.duration)}")
+    print(f"Target rate:  {config.rate:,} {plural('request', config.rate)} per second per job")
+    print(f"Body size:    {config.body_size:,} {plural('byte', config.body_size)}")
+    print(f"Workers:      {config.workers}")
 
     print()
     print("## Results")

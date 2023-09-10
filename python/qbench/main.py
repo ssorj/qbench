@@ -31,34 +31,24 @@ class Runner:
         self.config = config
         self.output_dir = make_temp_dir()
 
-        self.client_proc = None
-        self.server_proc = None
-
     def run(self, jobs):
         check_program("pidstat", "I can't find pidstat.  Run 'dnf install sysstat'.")
 
         remove(list_dir(".", "qbench.log*"), quiet=True)
 
-        try:
-            self.start_server()
-
+        with self.start_server() as server_proc:
             await_port(55155) # XXX
 
             # Awkward sleep
             sleep(0.2)
 
-            self.start_client(jobs)
+            with self.start_client(jobs) as client_proc:
+                pids = [str(x.pid) for x in (client_proc, server_proc)]
 
-            procs = [self.client_proc, self.server_proc]
-            pids = [str(x.pid) for x in procs]
-
-            with start(f"pidstat 2 --human -l -t -p {','.join(pids)}"):
-                with ProcessMonitor(pids[0]) as client_mon, ProcessMonitor(pids[1]) as server_mon:
-                    sleep(self.config.duration)
-                    # capture(pids[0], pids[1], self.duration, self.call_graph)
-        finally:
-            self.stop_client()
-            self.stop_server()
+                with start(f"pidstat 2 --human -l -t -p {','.join(pids)}"):
+                    with ProcessMonitor(pids[0]) as client_mon, ProcessMonitor(pids[1]) as server_mon:
+                        sleep(self.config.duration)
+                        # capture(pids[0], pids[1], self.duration, self.call_graph)
 
         results = self.process_output()
 
@@ -74,31 +64,28 @@ class Runner:
 
         return results
 
+    def run_server(self):
+        check_program("pidstat", "I can't find pidstat.  Run 'dnf install sysstat'.")
+
+        with self.start_server() as proc:
+            run(f"pidstat 2 --human -l -t -p {proc.pid}")
+
     def start_client(self, jobs):
         args = [
             "$QBENCH_HOME/c/qbench-client",
             "localhost",
             "55155",
-            str(self.config.client_workers),
+            str(self.config.workers),
             str(jobs),
             str(self.config.body_size),
             str(self.config.rate),
         ]
 
-        self.client_proc = start(args)
+        return start(args)
+        return self.client_proc
 
     def start_server(self):
-        self.server_proc = start(f"$QBENCH_HOME/c/qbench-server localhost 55155 {self.config.server_workers}")
-
-    def stop_client(self):
-        if self.client_proc is not None:
-            kill(self.client_proc)
-            wait(self.client_proc)
-
-    def stop_server(self):
-        if self.server_proc is not None:
-            kill(self.server_proc)
-            wait(self.server_proc)
+        return start(f"$QBENCH_HOME/c/qbench-server localhost 55155 {self.config.workers}")
 
     def process_output(self):
         run("cat qbench.log.* > qbench.log", shell=True)
