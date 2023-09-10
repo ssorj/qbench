@@ -34,8 +34,15 @@ run_parameters = [
     CommandParameter("body_size", default=100, type=int, metavar="BYTES",
                      help="The message body size in bytes"),
     CommandParameter("workers", default=4, type=int, metavar="COUNT",
-                     help="The number of client and server worker threads"),
+                     help="The number of worker threads (per process)"),
 ]
+
+client_parameters = [
+    CommandParameter("host", default="localhost",
+                     help="Listen for connections on HOST"),
+    CommandParameter("port", default="55672",
+                     help="Listen for connections on PORT"),
+] + run_parameters
 
 server_parameters = [
     CommandParameter("host", default="localhost",
@@ -65,6 +72,35 @@ def run_(*args, **kwargs):
             1: runner.run(1),
             10: runner.run(10),
             100: runner.run(100),
+        }
+    else:
+        summary["scenarios"] = {
+            config.jobs: runner.run(config.jobs),
+        }
+
+    pprint(summary)
+
+    report(config, summary["scenarios"])
+
+@command(parameters=client_parameters)
+def client(*args, **kwargs):
+    config = Namespace(**kwargs)
+    runner = Runner(config)
+
+    summary = {
+        "configuration": {
+            "duration": config.duration,
+            "rate": config.rate,
+            "body_size": config.body_size,
+            "workers": config.workers,
+        },
+    }
+
+    if config.jobs is None:
+        summary["scenarios"] = {
+            1: runner.run_client(1),
+            10: runner.run_client(10),
+            100: runner.run_client(100),
         }
     else:
         summary["scenarios"] = {
