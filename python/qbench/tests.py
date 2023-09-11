@@ -19,7 +19,7 @@
 
 from plano import *
 
-from main import *
+from .main import *
 from . import commands
 
 standard_options = [
@@ -37,9 +37,9 @@ standard_options = [
 
 #     return True
 
-def run_command(command):
+def run_command(command, *options):
     with working_dir():
-        PlanoCommand(commands).main([command] + standard_options)
+        PlanoCommand(commands).main([command] + standard_options + list(options))
 
 # def run_workload(workload):
 #     with working_dir():
@@ -52,3 +52,23 @@ def command_executable():
 @test
 def command_options():
     PlanoCommand(commands).main(["--help"])
+
+@test
+def server():
+    run_command("server", "--duration", "1")
+
+@test
+def client():
+    config = Namespace(workers=1)
+    runner = Runner(config)
+
+    with runner.start_server("localhost", 55672):
+        run_command("client", "--rate", "100")
+
+    with runner.start_server("localhost", 55672):
+        run_command("client", "--rate", "100", "--jobs", "1")
+
+@test
+def run_():
+    run_command("run", "--rate", "100")
+    run_command("run", "--rate", "100", "--jobs", "1")

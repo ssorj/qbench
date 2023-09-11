@@ -90,8 +90,16 @@ class Runner:
     def run_server(self):
         check_program("pidstat", "I can't find pidstat.  Run 'dnf install sysstat'.")
 
-        with self.start_server(self.config.host, self.config.port) as proc:
-            run(f"pidstat 2 --human -l -t -p {proc.pid}")
+        with self.start_server(self.config.host, self.config.port) as server_proc:
+            with start(f"pidstat 2 --human -l -t -p {server_proc.pid}"):
+                with ProcessMonitor(server_proc.pid) as server_mon:
+                    if self.config.duration:
+                        sleep(self.config.duration)
+                    else:
+                        while True:
+                            sleep(86400)
+
+                    # capture(pids[0], pids[1], self.duration, self.call_graph)
 
     def start_client(self, host, port, jobs):
         args = [
@@ -222,61 +230,61 @@ class Runner:
 
         return results
 
-    def print_summary(self):
-        data = read_json(join(self.output_dir, "summary.json"))
+    # def print_summary(self):
+    #     data = read_json(join(self.output_dir, "summary.json"))
 
-        print_heading("Configuration")
+    #     print_heading("Configuration")
 
-        config = data["configuration"]
+    #     config = data["configuration"]
 
-        props = [
-            ["Jobs", config["jobs"]],
-            ["Duration", format_duration(config["duration"])],
-            ["Output dir", config["output_dir"]],
-        ]
+    #     props = [
+    #         ["Jobs", config["jobs"]],
+    #         ["Duration", format_duration(config["duration"])],
+    #         ["Output dir", config["output_dir"]],
+    #     ]
 
-        print_properties(props)
+    #     print_properties(props)
 
-        print_heading("Results")
+    #     print_heading("Results")
 
-        results = data["results"]
+    #     results = data["results"]
 
-        props = [
-            ["Duration", format_duration(results["duration"])],
-        ]
+    #     props = [
+    #         ["Duration", format_duration(results["duration"])],
+    #     ]
 
-        if "bits" in results:
-            props += [
-                ["Bits", format_quantity(results["bits"])],
-                ["Bits/s", format_quantity(results["bits"] / results["duration"])],
-            ]
+    #     if "bits" in results:
+    #         props += [
+    #             ["Bits", format_quantity(results["bits"])],
+    #             ["Bits/s", format_quantity(results["bits"] / results["duration"])],
+    #         ]
 
-        if "operations" in results:
-            props += [
-                ["Operations", format_quantity(results["operations"])],
-                ["Operations/s", format_quantity(results["operations"] / results["duration"])],
-            ]
+    #     if "operations" in results:
+    #         props += [
+    #             ["Operations", format_quantity(results["operations"])],
+    #             ["Operations/s", format_quantity(results["operations"] / results["duration"])],
+    #         ]
 
-        if "latency" in results:
-            props += [
-                ["Latency*", results["latency"]["average"]],
-            ]
+    #     if "latency" in results:
+    #         props += [
+    #             ["Latency*", results["latency"]["average"]],
+    #         ]
 
-        print_properties(props)
+    #     print_properties(props)
 
-        if "resources" in data:
-            print_heading("Resources")
+    #     if "resources" in data:
+    #         print_heading("Resources")
 
-            resources = data["resources"]
+    #         resources = data["resources"]
 
-            props = [
-                ["Relay 1 average CPU", format_percent(resources["relay_1"]["average_cpu"])],
-                ["Relay 1 max RSS", format_quantity(resources["relay_1"]["max_rss"], mode="binary")],
-                ["Relay 2 average CPU", format_percent(resources["relay_2"]["average_cpu"])],
-                ["Relay 2 max RSS", format_quantity(resources["relay_2"]["max_rss"], mode="binary")],
-            ]
+    #         props = [
+    #             ["Relay 1 average CPU", format_percent(resources["relay_1"]["average_cpu"])],
+    #             ["Relay 1 max RSS", format_quantity(resources["relay_1"]["max_rss"], mode="binary")],
+    #             ["Relay 2 average CPU", format_percent(resources["relay_2"]["average_cpu"])],
+    #             ["Relay 2 max RSS", format_quantity(resources["relay_2"]["max_rss"], mode="binary")],
+    #         ]
 
-            print_properties(props)
+    #         print_properties(props)
 
 _ticks_per_ms = _os.sysconf(_os.sysconf_names["SC_CLK_TCK"]) / 1000
 _page_size = _resource.getpagesize()

@@ -51,6 +51,8 @@ server_parameters = [
                      help="Listen for connections on PORT"),
     CommandParameter("workers", default=4, type=int, metavar="COUNT",
                      help="The number of server worker threads"),
+    CommandParameter("duration", default=None, type=int, metavar="SECONDS",
+                     help="Exit after SECONDS (by default, run forever)"),
 ]
 
 @command(parameters=run_parameters)
@@ -92,7 +94,7 @@ def client(*args, **kwargs):
         }
     else:
         summary["scenarios"] = {
-            config.jobs: runner.run(config.jobs),
+            config.jobs: runner.run_client(config.jobs),
         }
 
     report(config, summary["scenarios"])
