@@ -25,12 +25,12 @@ assert "QBENCH_HOME" in ENV
 
 run_parameters = [
     CommandParameter("jobs", default=None, type=int, metavar="COUNT",
-                     help="The number of concurrent client connections sending requests and receiving responses "
+                     help="The number of concurrent client jobs "
                      "(the default is a set of 1, 10, and 100)"),
     CommandParameter("duration", default=10, type=int, metavar="SECONDS",
                      help="The execution time in seconds"),
-    CommandParameter("rate", default=10_000, type=int, metavar="REQUESTS",
-                     help="The target rate for sending requests (per second per job)"),
+    CommandParameter("rate", default=1000, type=int,
+                     help="Send RATE requests per second per job (0 means unlimited)"),
     CommandParameter("body_size", default=100, type=int, metavar="BYTES",
                      help="The message body size in bytes"),
     CommandParameter("workers", default=4, type=int, metavar="COUNT",
@@ -59,12 +59,7 @@ def run_(*args, **kwargs):
     runner = Runner(config)
 
     summary = {
-        "configuration": {
-            "duration": config.duration,
-            "rate": config.rate,
-            "body_size": config.body_size,
-            "workers": config.workers,
-        },
+        "configuration": kwargs,
     }
 
     if config.jobs is None:
@@ -78,8 +73,6 @@ def run_(*args, **kwargs):
             config.jobs: runner.run(config.jobs),
         }
 
-    pprint(summary)
-
     report(config, summary["scenarios"])
 
 @command(parameters=client_parameters)
@@ -88,12 +81,7 @@ def client(*args, **kwargs):
     runner = Runner(config)
 
     summary = {
-        "configuration": {
-            "duration": config.duration,
-            "rate": config.rate,
-            "body_size": config.body_size,
-            "workers": config.workers,
-        },
+        "configuration": kwargs,
     }
 
     if config.jobs is None:
@@ -106,8 +94,6 @@ def client(*args, **kwargs):
         summary["scenarios"] = {
             config.jobs: runner.run(config.jobs),
         }
-
-    pprint(summary)
 
     report(config, summary["scenarios"])
 

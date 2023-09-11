@@ -339,11 +339,11 @@ static void* worker_run(void* data) {
 }
 
 static pn_proactor_t* proactor = NULL;
-static volatile sig_atomic_t stopping = false;
+static volatile sig_atomic_t running = true;
 
 static void signal_handler(int signum) {
     pn_proactor_interrupt(proactor);
-    stopping = true;
+    running = false;
 }
 
 int main(size_t argc, char** argv) {
@@ -388,7 +388,7 @@ int main(size_t argc, char** argv) {
     info("Client started");
 
     if (target_rate) {
-        while (!stopping) {
+        while (running) {
             for (int i = 0; i < job_count; i++) {
                 pn_connection_wake(connections[i]);
             }
@@ -396,7 +396,7 @@ int main(size_t argc, char** argv) {
             sleep_micros(1000);
         }
     } else {
-        while (!stopping) {
+        while (running) {
             sleep(1);
         }
     }

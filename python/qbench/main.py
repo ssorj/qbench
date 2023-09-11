@@ -49,6 +49,8 @@ class Runner:
                         sleep(self.config.duration)
                         # capture(pids[0], pids[1], self.duration, self.call_graph)
 
+            wait(client_proc)
+
         results = self.process_output()
 
         results["client_resources"] = {
@@ -115,13 +117,15 @@ class Runner:
         return start(args)
 
     def process_output(self):
+        notice("Processing output")
+
         run("cat qbench.log.* > qbench.log", shell=True)
         run("rm qbench.log.*", shell=True)
 
         if get_file_size("qbench.log") == 0:
             raise Exception("No data in logs")
 
-        data = _pandas.read_csv("qbench.log", header=None)
+        data = _pandas.read_csv("qbench.log", header=None, dtype="int")
 
         start_time = data[0].min() / 1_000_000
         end = data.loc[data[0].idxmax()]
