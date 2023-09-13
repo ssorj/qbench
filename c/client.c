@@ -348,14 +348,14 @@ static void signal_handler(int signum) {
 
 int main(size_t argc, char** argv) {
     if (argc != 7) {
-        info("Usage: qbench-client HOST PORT WORKERS JOBS BODY-SIZE TARGET-RATE");
+        info("Usage: qbench-client HOST PORT WORKERS CONNECTIONS BODY-SIZE TARGET-RATE");
         return 1;
     }
 
     char* host = argv[1];
     char* port = argv[2];
     int worker_count = atoi(argv[3]);
-    int job_count = atoi(argv[4]);
+    int connection_count = atoi(argv[4]);
     int body_size = atoi(argv[5]);
 
     // Scale the target rate to requests per microsecond
@@ -364,7 +364,7 @@ int main(size_t argc, char** argv) {
     proactor = pn_proactor();
     worker_t workers[worker_count];
     pthread_t worker_threads[worker_count];
-    pn_connection_t* connections[job_count];
+    pn_connection_t* connections[connection_count];
 
     signal(SIGINT, signal_handler);
     signal(SIGQUIT, signal_handler);
@@ -375,7 +375,7 @@ int main(size_t argc, char** argv) {
         pthread_create(&worker_threads[i], NULL, &worker_run, &workers[i]);
     }
 
-    for (int i = 0; i < job_count; i++) {
+    for (int i = 0; i < connection_count; i++) {
         connections[i] = pn_connection();
         char address[256];
 
@@ -389,7 +389,7 @@ int main(size_t argc, char** argv) {
 
     if (target_rate) {
         while (running) {
-            for (int i = 0; i < job_count; i++) {
+            for (int i = 0; i < connection_count; i++) {
                 pn_connection_wake(connections[i]);
             }
 
@@ -406,7 +406,7 @@ int main(size_t argc, char** argv) {
         worker_free(&workers[i]);
     }
 
-    for (int i = 0; i < job_count; i++) {
+    for (int i = 0; i < connection_count; i++) {
         connection_context_t* context = pn_connection_get_context(connections[i]);
         free(context);
     }
