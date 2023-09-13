@@ -704,6 +704,9 @@ def parse_json(json):
 def emit_json(data):
     return _json.dumps(data, indent=4, separators=(",", ": "), sort_keys=True)
 
+def print_json(data, **kwargs):
+    print(emit_json(data), **kwargs)
+
 ## HTTP operations
 
 def _run_curl(method, url, content=None, content_file=None, content_type=None, output_file=None, insecure=False):
@@ -1109,7 +1112,7 @@ def _format_command(command, represent=True):
     else:
         args = command
 
-    args = [expand(x) for x in args]
+    args = [expand(str(x)) for x in args]
     command = " ".join(args)
 
     if represent:
@@ -1163,14 +1166,14 @@ def start(command, stdin=None, stdout=None, stderr=None, output=None, shell=Fals
         if is_string(command):
             args = command
         else:
-            args = " ".join(command)
+            args = " ".join(map(str, command))
     else:
         if is_string(command):
             args = _shlex.split(command)
         else:
             args = command
 
-        args = [expand(x) for x in args]
+        args = [expand(str(x)) for x in args]
 
     try:
         proc = PlanoProcess(args, stdin=stdin, stdout=stdout, stderr=stderr, shell=shell, close_fds=True, stash_file=stash_file)
@@ -1314,7 +1317,7 @@ class PlanoProcess(_subprocess.Popen):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        kill(self)
+        stop(self)
 
     def __repr__(self):
         return "process {} (command {})".format(self.pid, _format_command(self.args))
@@ -1633,6 +1636,9 @@ def emit_yaml(data):
     import yaml as _yaml
 
     return _yaml.safe_dump(data)
+
+def print_yaml(data, **kwargs):
+    print(emit_yaml(data), **kwargs)
 
 if PLANO_DEBUG: # pragma: nocover
     enable_logging(level="debug")
