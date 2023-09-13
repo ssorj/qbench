@@ -24,13 +24,13 @@ from .main import *
 assert "QBENCH_HOME" in ENV
 
 run_parameters = [
-    CommandParameter("jobs", default=None, type=int, metavar="COUNT",
-                     help="The number of concurrent client jobs "
+    CommandParameter("clients", default=None, type=int, metavar="COUNT",
+                     help="The number of concurrent client sessions "
                      "(the default is a set of 1, 10, and 100)"),
     CommandParameter("duration", default=10, type=int, metavar="SECONDS",
                      help="The execution time in seconds"),
-    CommandParameter("rate", default=1000, type=int,
-                     help="Send RATE requests per second per job (0 means unlimited)"),
+    CommandParameter("rate", default=10000, type=int,
+                     help="Send RATE requests per second per client (0 means unlimited)"),
     CommandParameter("body_size", default=100, type=int, metavar="BYTES",
                      help="The message body size in bytes"),
     CommandParameter("workers", default=4, type=int, metavar="COUNT",
@@ -120,9 +120,9 @@ def report(config, scenarios):
     print("## Results")
     print()
 
-    columns = "{:>4}  {:>20}  {:>14}  {:>14}  {:>14}"
+    columns = "{:>7}  {:>20}  {:>14}  {:>14}  {:>14}"
 
-    print(columns.format("JOBS", "THROUGHPUT", "LATENCY AVG", "LATENCY P50", "LATENCY P99"))
+    print(columns.format("CLIENTS", "THROUGHPUT", "LATENCY AVG", "LATENCY P50", "LATENCY P99"))
 
     for jobs, data in scenarios.items():
         throughput = data["operations"] / data["duration"]
