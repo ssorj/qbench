@@ -31,7 +31,7 @@ class Runner:
         self.config = config
         self.output_dir = make_temp_dir()
 
-    def run(self, jobs):
+    def run(self, connections):
         check_program("pidstat", "I can't find pidstat.  Run 'dnf install sysstat'.")
 
         remove(list_dir(".", "qbench.log*"), quiet=True)
@@ -41,7 +41,7 @@ class Runner:
         with self.start_server("localhost", server_port) as server_proc:
             await_port(server_port)
 
-            with self.start_client("localhost", server_port, jobs) as client_proc:
+            with self.start_client("localhost", server_port, connections) as client_proc:
                 pids = [str(x.pid) for x in (client_proc, server_proc)]
 
                 with start(f"pidstat 2 --human -l -t -p {','.join(pids)}"):
@@ -65,14 +65,14 @@ class Runner:
 
         return results
 
-    def run_client(self, jobs):
+    def run_client(self, connections):
         check_program("pidstat", "I can't find pidstat.  Run 'dnf install sysstat'.")
 
         remove(list_dir(".", "qbench.log*"), quiet=True)
 
         await_port(self.config.port, host=self.config.host)
 
-        with self.start_client(self.config.host, self.config.port, jobs) as client_proc:
+        with self.start_client(self.config.host, self.config.port, connections) as client_proc:
             with start(f"pidstat 2 --human -l -t -p {client_proc.pid}"):
                 with ProcessMonitor(client_proc.pid) as client_mon:
                     sleep(self.config.duration)
@@ -101,15 +101,15 @@ class Runner:
 
                     # capture(pids[0], pids[1], self.duration, self.call_graph)
 
-    def start_client(self, host, port, jobs):
+    def start_client(self, host, port, connections):
         args = [
             "$QBENCH_HOME/c/qbench-client",
             host,
-            str(port),
-            str(self.config.workers),
-            str(jobs),
-            str(self.config.body_size),
-            str(self.config.rate),
+            port,
+            self.config.workers,
+            connections,
+            self.config.body_size,
+            self.config.rate,
         ]
 
         return start(args)
@@ -118,8 +118,8 @@ class Runner:
         args = [
             "$QBENCH_HOME/c/qbench-server",
             host,
-            str(port),
-            str(self.config.workers),
+            port,
+            self.config.workers,
         ]
 
         return start(args)
@@ -238,7 +238,7 @@ class Runner:
     #     config = data["configuration"]
 
     #     props = [
-    #         ["Jobs", config["jobs"]],
+    #         ["Connections", config["connections"]],
     #         ["Duration", format_duration(config["duration"])],
     #         ["Output dir", config["output_dir"]],
     #     ]
