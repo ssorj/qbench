@@ -25,7 +25,7 @@ from . import commands
 standard_options = [
     "--duration", "1",
     # "--warmup", "0",
-    # "--jobs", "1",
+    # "--connections", "1",
     # "--cpu-limit", "0"
 ]
 
@@ -66,9 +66,9 @@ def client():
         run_command("client", "--rate", "100")
 
     with runner.start_server("localhost", 55672):
-        run_command("client", "--rate", "100", "--jobs", "1")
+        run_command("client", "--rate", "100", "--connections", "1")
 
 @test
 def run_():
     run_command("run", "--rate", "100")
-    run_command("run", "--rate", "100", "--jobs", "1")
+    run_command("run", "--rate", "100", "--connections", "1")
