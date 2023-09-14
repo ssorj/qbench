@@ -30,18 +30,18 @@ run_parameters = [
     CommandParameter("duration", default=10, type=int, metavar="SECONDS",
                      help="The execution time in seconds"),
     CommandParameter("rate", default=10000, type=int,
-                     help="Send RATE requests per second per client (0 means unlimited)"),
+                     help="Send RATE requests per second per connection (0 means unlimited)"),
     CommandParameter("body_size", default=100, type=int, metavar="BYTES",
                      help="The message body size in bytes"),
     CommandParameter("workers", default=4, type=int, metavar="COUNT",
-                     help="The number of worker threads (per process)"),
+                     help="The number of worker threads"),
 ]
 
 client_parameters = [
     CommandParameter("host", default="localhost",
-                     help="Listen for connections on HOST"),
+                     help="Connect to HOST"),
     CommandParameter("port", default="55672",
-                     help="Listen for connections on PORT"),
+                     help="Connect to PORT"),
 ] + run_parameters
 
 server_parameters = [
@@ -57,6 +57,10 @@ server_parameters = [
 
 @command(parameters=run_parameters)
 def run_(*args, **kwargs):
+    """
+    Run the benchmark (client and server)
+    """
+
     config = Namespace(**kwargs)
     runner = Runner(config)
 
@@ -79,6 +83,10 @@ def run_(*args, **kwargs):
 
 @command(parameters=client_parameters)
 def client(*args, **kwargs):
+    """
+    Run the benchmark client
+    """
+
     config = Namespace(**kwargs)
     runner = Runner(config)
 
@@ -101,6 +109,10 @@ def client(*args, **kwargs):
 
 @command(parameters=server_parameters)
 def server(*args, **kwargs):
+    """
+    Run the benchmark server
+    """
+
     config = Namespace(**kwargs)
     runner = Runner(config)
 

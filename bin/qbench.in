@@ -30,4 +30,6 @@ from plano import PlanoCommand
 from qbench import commands
 
 if __name__ == "__main__":
-    PlanoCommand(commands, description="XXX").main()
+    description = "An AMQP messaging benchmarking tool"
+
+    PlanoCommand(commands, description=description).main()
