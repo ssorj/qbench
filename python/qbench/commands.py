@@ -33,6 +33,8 @@ run_parameters = [
                      help="Send RATE requests per second per connection (0 means unlimited)"),
     CommandParameter("body_size", default=100, type=int, metavar="BYTES",
                      help="The message body size in bytes"),
+    CommandParameter("output", default=make_temp_dir(), metavar="DIR",
+                     help="Save output files to DIR"),
     CommandParameter("workers", default=4, type=int, metavar="COUNT",
                      help="The number of worker threads"),
 ]
@@ -79,6 +81,8 @@ def run_(*args, **kwargs):
             config.connections: runner.run(config.connections),
         }
 
+    write_json(join(config.output, "summary.json"), summary)
+
     report(config, summary["scenarios"])
 
 @command(parameters=client_parameters)
@@ -105,6 +109,8 @@ def client(*args, **kwargs):
             config.connections: runner.run_client(config.connections),
         }
 
+    write_json(join(config.output, "summary.json"), summary)
+
     report(config, summary["scenarios"])
 
 @command(parameters=server_parameters)
@@ -123,10 +129,11 @@ def report(config, scenarios):
     print("## Configuration")
     print()
 
-    print(f"Duration:     {config.duration:,} {plural('second', config.duration)}")
-    print(f"Target rate:  {config.rate:,} {plural('request', config.rate)} per second per connection")
-    print(f"Body size:    {config.body_size:,} {plural('byte', config.body_size)}")
-    print(f"Workers:      {config.workers}")
+    print(f"Duration:      {config.duration:,} {plural('second', config.duration)}")
+    print(f"Target rate:   {config.rate:,} {plural('request', config.rate)} per second per connection")
+    print(f"Body size:     {config.body_size:,} {plural('byte', config.body_size)}")
+    print(f"Output files:  {config.output}")
+    print(f"Workers:       {config.workers}")
 
     print()
     print("## Results")

@@ -29,7 +29,6 @@ import time as _time
 class Runner:
     def __init__(self, config):
         self.config = config
-        self.output_dir = make_temp_dir()
 
     def run(self, connections):
         check_program("pidstat", "I can't find pidstat.  Run 'dnf install sysstat'.")
@@ -48,8 +47,6 @@ class Runner:
                     with ProcessMonitor(pids[0]) as client_mon, ProcessMonitor(pids[1]) as server_mon:
                         sleep(self.config.duration)
                         # capture(pids[0], pids[1], self.duration, self.call_graph)
-
-            wait(client_proc)
 
         results = self.process_output()
 
