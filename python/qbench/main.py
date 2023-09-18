@@ -92,7 +92,7 @@ class Runner:
                 with ProcessMonitor(server_proc.pid) as server_mon:
                     if self.config.duration:
                         sleep(self.config.duration)
-                    else:
+                    else: # pragma: no cover
                         while True:
                             sleep(86400)
 
@@ -127,7 +127,7 @@ class Runner:
         run("cat qbench.log.* > qbench.log", shell=True)
         run("rm qbench.log.*", shell=True)
 
-        if get_file_size("qbench.log") == 0:
+        if get_file_size("qbench.log") == 0: # pragma: no cover
             raise Exception("No data in logs")
 
         data = _pandas.read_csv("qbench.log", header=None, dtype="int")

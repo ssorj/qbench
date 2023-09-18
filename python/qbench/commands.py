@@ -33,7 +33,7 @@ run_parameters = [
                      help="Send RATE requests per second per connection (0 means unlimited)"),
     CommandParameter("body_size", default=100, type=int, metavar="BYTES",
                      help="The message body size in bytes"),
-    CommandParameter("output", default=make_temp_dir(), metavar="DIR",
+    CommandParameter("output", metavar="DIR",
                      help="Save output files to DIR"),
     CommandParameter("workers", default=4, type=int, metavar="COUNT",
                      help="The number of worker threads"),
@@ -63,6 +63,9 @@ def run_(*args, **kwargs):
     Run the benchmark (client and server)
     """
 
+    if kwargs["output"] is None:
+        kwargs["output"] = make_temp_dir(prefix="qbench-")
+
     config = Namespace(**kwargs)
     runner = Runner(config)
 
@@ -90,6 +93,9 @@ def client(*args, **kwargs):
     """
     Run the benchmark client
     """
+
+    if kwargs["output"] is None:
+        kwargs["output"] = make_temp_dir(prefix="qbench-")
 
     config = Namespace(**kwargs)
     runner = Runner(config)
@@ -155,7 +161,7 @@ def report(config, scenarios):
               ))
 
     print()
-    print("## Sender metrics (P50/P99)")
+    print("Sender metrics (P50/P99)")
     print()
 
     print(columns.format("CONNECTIONS", "OUTGOING BYTES", "S CREDIT", "S QUEUED", "S UNSETTLED"))
@@ -172,7 +178,7 @@ def report(config, scenarios):
               ))
 
     print()
-    print("## Receiver metrics (P50/P99)")
+    print("Receiver metrics (P50/P99)")
     print()
 
     print(columns.format("CONNECTIONS", "INCOMING BYTES", "R CREDIT", "R QUEUED", "R UNSETTLED"))
