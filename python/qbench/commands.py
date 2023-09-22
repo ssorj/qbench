@@ -26,10 +26,10 @@ assert "QBENCH_HOME" in ENV
 run_parameters = [
     CommandParameter("connections", default=None, type=int, metavar="COUNT",
                      help="The number of concurrent client connections "
-                     "(the default is a set of 1, 10, and 100)"),
+                     "(the default is a set of 10, 100, and 500)"),
     CommandParameter("duration", default=10, type=int, metavar="SECONDS",
                      help="The execution time in seconds"),
-    CommandParameter("rate", default=10000, type=int,
+    CommandParameter("rate", default=1000, type=int,
                      help="Send RATE requests per second per connection (0 means unlimited)"),
     CommandParameter("body_size", default=100, type=int, metavar="BYTES",
                      help="The message body size in bytes"),
@@ -75,9 +75,9 @@ def run_(*args, **kwargs):
 
     if config.connections is None:
         summary["scenarios"] = {
-            1: runner.run(1),
             10: runner.run(10),
             100: runner.run(100),
+            500: runner.run(500),
         }
     else:
         summary["scenarios"] = {
@@ -106,9 +106,9 @@ def client(*args, **kwargs):
 
     if config.connections is None:
         summary["scenarios"] = {
-            1: runner.run_client(1),
             10: runner.run_client(10),
             100: runner.run_client(100),
+            500: runner.run_client(500),
         }
     else:
         summary["scenarios"] = {
