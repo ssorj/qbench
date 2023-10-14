@@ -33,8 +33,8 @@ run_parameters = [
                      help="Send RATE requests per second per connection (0 means unlimited)"),
     CommandParameter("body_size", default=100, type=int, metavar="BYTES",
                      help="The message body size in bytes"),
-    CommandParameter("output", metavar="DIR",
-                     help="Save output files to DIR"),
+    CommandParameter("output", default=None, metavar="DIR",
+                     help="Save output files to DIR (default is a temp dir)"),
     CommandParameter("workers", default=4, type=int, metavar="COUNT",
                      help="The number of worker threads"),
 ]

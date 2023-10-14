@@ -30,6 +30,9 @@ class Runner:
     def __init__(self, config):
         self.config = config
 
+        if not hasattr(self.config, "output") or self.config.output is None:
+            self.config.output = make_temp_dir()
+
     def run(self, connections):
         check_program("pidstat", "I can't find pidstat.  Run 'dnf install sysstat'.")
 
