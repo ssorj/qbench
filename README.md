@@ -53,8 +53,8 @@ To alter the GCC library and header search paths, use the
 `LIBRARY_PATH`, `C_INCLUDE_PATH`, and`CPLUS_INCLUDE_PATH` environment
 variables.
 
-    export LIBRARY_PATH=$HOME/.local/lib64
-    export C_INCLUDE_PATH=$HOME/.local/include
+    export LIBRARY_PATH=~/.local/lib64
+    export C_INCLUDE_PATH=~/.local/include
     ./plano clean,install
 
 <!-- XXX qbench check -->
