@@ -39,7 +39,7 @@ CONNECTIONS        INCOMING BYTES        R CREDIT        R QUEUED     R UNSETTLE
 
 Install required dependencies:
 
-    sudo dnf -y install gcc python python-pandas qpid-proton-c-devel systools
+    sudo dnf -y install gcc python python-pandas qpid-proton-c-devel sysstat
 
 Install Qbench itself.  The resulting executable is at
 `~/.local/bin/qbench`.
